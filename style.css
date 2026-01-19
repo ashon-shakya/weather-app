@@ -51,6 +51,9 @@ body {
   font-size: 4rem;
 }
 
+.forecast {
+  min-height: 300px;
+}
 .extra-metrics {
   height: 50px;
 }
@@ -65,5 +68,21 @@ body {
 }
 
 .temp {
-  min-width: 50px;
+  display: flex;
+  justify-content: start;
+  /* width: 60px; */
+  gap: 10px;
+}
+
+.temp > div {
+  width: 25px;
+}
+
+.hidden {
+  display: none;
+}
+
+.metric {
+  font-weight: lighter;
+  font-size: 0.7rem;
 }

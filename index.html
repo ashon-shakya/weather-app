@@ -9,7 +9,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
 
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+        integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 
 <body>
@@ -19,62 +21,65 @@
             <div class="mobile-top">
                 <span>10:10</span>
                 <div>
-                    icons
+                    <i class="fa-solid fa-signal"></i>
+                    <i class="fa-solid fa-wifi"></i>
+                    <i class="fa-solid fa-battery-half"></i>
                 </div>
             </div>
 
-            <div class="screen d-flex flex-column p-2">
-                <span class="text-center">Weather Application</span>
+            <div class="screen d-flex flex-column justify-content-start p-4 h-100">
+                <span class="text-center"> 🌤️ Weather Application</span>
                 <hr />
-                <div class="search d-flex gap-2 justify-content-between px-2">
-                    <input type="text" class="form-control" id="search" placeholder="Enter a city">
-                    <button class="btn btn-primary" id="search-btn">🔍</button>
-                </div>
-                <!-- current weather -->
-                <!-- Sunny, Storm, Cloudy, Coludy_sunny, Rainy, Hail -->
-                <div class="current-weather mt-2 rounded-4 shadow p-2">
-                    <div class="temperature d-flex justify-content-evenly align-items-center">
-                        <div class="temp-icon " id="today-temp-icon">
-                            🌤️
-                        </div>
-                        <div class="temp-details d-flex flex-column justify-content-center">
 
-                            <span>Today</span>
-                            <h1> <span id="today-temp">25</span>&deg;</h1>
-                            <span class="fw-lighter" id="today-temp-forecast">Mostly Cloudy</span>
+                <div class="screen-content h-100">
+                    <div class="search d-flex gap-2 justify-content-between px-2 mb-2">
+                        <input type="text" class="form-control" id="search" placeholder="Enter a city">
+                        <button class="btn btn-primary" id="search-btn">🔍</button>
+                    </div>
 
+                    <div id="loader" class="hidden">
+                        <div class="d-flex justify-content-center my-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="extra-metrics d-flex justify-content-evenly align-items-center">
-                        <div class="metric">
-                            rain
+                    <!-- current weather -->
+                    <!-- Sunny, Storm, Cloudy, Coludy_sunny, Rainy, Hail -->
+                    <div class="current-weather mt-2 rounded-4 shadow p-2">
+                        <div class="temperature d-flex justify-content-evenly align-items-center">
+                            <div class="temp-icon " id="today-temp-icon">
+                                🌤️
+                            </div>
+                            <div class="temp-details d-flex flex-column justify-content-center">
+
+                                <span>Today</span>
+                                <h1> <span id="today-temp">-</span></h1>
+                                <span class="fw-lighter" id="today-temp-forecast">--</span>
+
+                            </div>
                         </div>
-                        <div class="metric">
-                            rain
+
+                        <div class="extra-metrics d-flex justify-content-evenly align-items-center mt-2">
+                            <div class="metric d-flex flex-column align-items-center">
+                                <span class="metric-title">Rain</span>
+                                <span class="metric-value" id="today-rain">-</span>
+                            </div>
+                            <div class="metric d-flex flex-column align-items-center">
+                                <span class="metric-title">Humidity</span>
+                                <span class="metric-value" id="today-humidity">-</span>
+                            </div>
+                            <div class="metric d-flex flex-column align-items-center">
+                                <span class="metric-title">Wind</span>
+                                <span class="metric-value" id="today-wind">-</span>
+                            </div>
                         </div>
-                        <div class="metric">
-                            Humidity
-                        </div>
+
                     </div>
 
-                </div>
+                    <div class="forecast d-flex flex-column mt-2 h-50 overflow-y-scroll" id="forecast">
 
-                <div class="forecast d-flex flex-column mt-2 h-50 overflow-y-scroll" id="forecast">
-                    <div
-                        class="forecast-row d-flex justify-content-between rounded-2 align-items-center px-4 fw-lighter">
-                        <div class="forecast-date">
-                            Sat
-                        </div>
-                        <div class="forecast-details d-flex justify-content-start align-items-center">
-                            <span class="icon fs-1">🌤️</span>
-                            <span>Storm</span>
-                        </div>
-
-                        <div class="temp">
-                            <span>21&deg;</span>
-                            <span>7&deg;</span>
-                        </div>
                     </div>
                 </div>
             </div>

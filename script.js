@@ -12,7 +12,12 @@ const searchBtnElement = document.getElementById("search-btn");
 const todayTempElement = document.getElementById("today-temp");
 const todayTempForecastElement = document.getElementById("today-temp-forecast");
 const todayTempIconElement = document.getElementById("today-temp-icon");
+const todayRainElement = document.getElementById("today-rain");
+const todayHumidityElement = document.getElementById("today-humidity");
+const todayWindElement = document.getElementById("today-wind");
+
 const foreCastElement = document.getElementById("forecast");
+const loaderElement = document.getElementById("loader");
 
 // function to get gps coordinate via key word
 const searchLocation = async (location) => {
@@ -46,7 +51,9 @@ const searchWeather = async (latitude, longitude) => {
   );
 
   let data = await response.json();
-  return data;
+
+  console.log(data);
+  return data?.error ? false : data;
 };
 
 // Weather Code Table
@@ -79,6 +86,7 @@ const wmoCodeTable = {
 
 // fetch daily forecast
 const fetchDailyForecast = async (search) => {
+  loaderElement.classList.remove("hidden");
   // get location gps coordinates
   let locationResult = await searchLocation(search);
 
@@ -88,51 +96,91 @@ const fetchDailyForecast = async (search) => {
     locationResult.longitude,
   );
 
-  // fill the current temperature
-  todayTempElement.innerText = data.current.temperature_2m;
-  todayTempForecastElement.innerText =
-    wmoCodeTable[data.current.weather_code].name;
-  todayTempIconElement.innerText =
-    wmoCodeTable[data.current.weather_code].emoji;
+  if (data) {
+    // fill the current temperature
+    todayTempElement.innerText =
+      data.current.temperature_2m + " " + data.current_units.temperature_2m;
+    todayTempForecastElement.innerText =
+      wmoCodeTable[data.current.weather_code].name;
+    todayTempIconElement.innerText =
+      wmoCodeTable[data.current.weather_code].emoji;
+    todayRainElement.innerText =
+      data.current.rain + " " + data.current_units.rain;
+    todayHumidityElement.innerText =
+      data.current.relative_humidity_2m +
+      " " +
+      data.current_units.relative_humidity_2m;
+    todayWindElement.innerText =
+      data.current.wind_speed_10m + " " + data.current_units.wind_speed_10m;
 
-  // fill the daily forecast
-  let foreCastRows = "";
+    // fill the daily forecast
+    let foreCastRows = "";
 
-  for (let i = 0; i < data.daily.time.length; i++) {
-    const options = { weekday: "short" };
-    const dayName = new Date(data.daily.time[i]).toLocaleDateString(
-      "en-US",
-      options,
-    );
+    for (let i = 0; i < data.daily.time.length; i++) {
+      const options = { weekday: "short" };
+      const dayName = new Date(data.daily.time[i]).toLocaleDateString(
+        "en-US",
+        options,
+      );
 
-    const weather = wmoCodeTable[data.daily.weather_code[i]];
-    //  {name, emoji}
+      const weather = wmoCodeTable[data.daily.weather_code[i]];
+      //  {name, emoji}
 
-    const tempMin = data.daily.temperature_2m_min[i];
-    const tempMax = data.daily.temperature_2m_max[i];
+      const tempMin = data.daily.temperature_2m_min[i];
+      const tempMax = data.daily.temperature_2m_max[i];
 
-    foreCastRows += `<div
-                        class="forecast-row d-flex justify-content-between rounded-2 align-items-center px-4 fw-lighter">
-                        <div class="forecast-date">
-                            ${dayName}
-                        </div>
-                        <div class="forecast-details d-flex justify-content-start align-items-center">
-                            <span class="icon fs-1">${weather.emoji}</span>
-                            <span>${weather.name}</span>
-                        </div>
+      foreCastRows += `<div
+                          class="forecast-row d-flex justify-content-between rounded-2 align-items-center px-4 fw-lighter">
+                          <div class="forecast-date">
+                              ${dayName}
+                          </div>
+                          <div class="forecast-details d-flex justify-content-start align-items-center">
+                              <span class="icon fs-1">${weather.emoji}</span>
+                              <span>${weather.name}</span>
+                          </div>
+  
+                          <div class="temp">
+                              <div>${tempMax}&deg;</div>
+                              <div>${tempMin}&deg;</div>
+                          </div>
+                      </div>
+  `;
+    }
 
-                        <div class="temp">
-                            <span>${tempMax}&deg;</span>
-                            <span>${tempMin}&deg;</span>
-                        </div>
-                    </div>
-`;
+    foreCastElement.innerHTML = foreCastRows;
+  } else {
+    // reset data
+    // fill the current temperature
+    todayTempElement.innerText = "-";
+    todayTempForecastElement.innerText = "-";
+    todayTempIconElement.innerText = "-";
+    todayRainElement.innerText = "-";
+    todayHumidityElement.innerText = "-";
+    todayWindElement.innerText = "-";
+    foreCastElement.innerHTML = ` <div
+                            class="forecast-row d-flex justify-content-between rounded-2 align-items-center px-4 fw-lighter">
+                            <div class="forecast-date">
+                                -
+                            </div>
+                            <div class="forecast-details d-flex justify-content-start align-items-center">
+                                <span class="icon fs-1">🌤️</span>
+                                <span>-</span>
+                            </div>
+
+                            <div class="temp">
+                                <div>-&deg;</div>
+                                <div>-&deg;</div>
+                            </div>
+                        </div>`;
   }
 
-  foreCastElement.innerHTML = foreCastRows;
+  loaderElement.classList.add("hidden");
 };
 
 // Click event listner for search button
 searchBtnElement.addEventListener("click", async () => {
   fetchDailyForecast(searchElement.value);
 });
+
+searchElement.value = "Sydney";
+fetchDailyForecast(searchElement.value);
