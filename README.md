@@ -11,7 +11,7 @@ A weather application that provides real-time weather data, forecasts, and atmos
 
 ## Technologies
 
-- JavaScript/React
+- JavaScript
 - Weather API integration
 - Responsive design
 
