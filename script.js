@@ -132,6 +132,7 @@ class WeatherApp {
   todayWindElement;
   foreCastElement;
   loaderElement;
+  mobileTimeElement;
   constructor(value) {
     this.searchElement = elementSelector("search");
     this.searchBtnElement = elementSelector("search-btn");
@@ -143,6 +144,7 @@ class WeatherApp {
     this.todayWindElement = elementSelector("today-wind");
     this.foreCastElement = elementSelector("forecast");
     this.loaderElement = elementSelector("loader");
+    this.mobileTimeElement = elementSelector("mobile-time");
 
     // initial search value
     this.searchElement.value = value;
@@ -151,6 +153,17 @@ class WeatherApp {
     this.searchBtnElement.addEventListener("click", async () => {
       this.fetchDailyForecast(this.searchElement.value);
     });
+
+    const setTime = () => {
+      const now = new Date();
+      const hour = now.getHours();
+      const minute = now.getMinutes();
+
+      this.mobileTimeElement.innerText = `${hour} : ${minute}`;
+    };
+
+    setTime();
+    setInterval(setTime, 60000);
   }
 
   renderDailyForecast(data) {
