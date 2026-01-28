@@ -86,3 +86,18 @@ body {
   font-weight: lighter;
   font-size: 0.7rem;
 }
+
+.forecast-table {
+  --bs-table-bg: transparent !important;
+  font-size: 0.8rem;
+
+  td {
+    color: rgba(255, 255, 255, 0.8) !important;
+    border-color: rgba(255, 255, 255, 0.1);
+    font-weight: lighter;
+    padding: 0px !important;
+  }
+  td > span {
+    font-size: 1.5rem;
+  }
+}

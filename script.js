@@ -7,17 +7,42 @@
 // 5. Show 7-day forecast with min/max temperatures and weather conditions
 
 // search input element
-const searchElement = document.getElementById("search");
-const searchBtnElement = document.getElementById("search-btn");
-const todayTempElement = document.getElementById("today-temp");
-const todayTempForecastElement = document.getElementById("today-temp-forecast");
-const todayTempIconElement = document.getElementById("today-temp-icon");
-const todayRainElement = document.getElementById("today-rain");
-const todayHumidityElement = document.getElementById("today-humidity");
-const todayWindElement = document.getElementById("today-wind");
+const elementSelector = (element, type = "id") => {
+  switch (type) {
+    case "id":
+      return document.getElementById(element);
+    default:
+      return document.querySelector(element);
+  }
+};
 
-const foreCastElement = document.getElementById("forecast");
-const loaderElement = document.getElementById("loader");
+// Weather Code Table
+const wmoCodeTable = {
+  0: { emoji: "☀️", name: "Clear" },
+  1: { emoji: "🌤️", name: "Mainly Clear" },
+  2: { emoji: "⛅", name: "Partly Cloudy" },
+  3: { emoji: "☁️", name: "Overcast" },
+  45: { emoji: "🌫️", name: "Foggy" },
+  48: { emoji: "🌫️", name: "Depositing Rime Fog" },
+  51: { emoji: "🌧️", name: "Light Drizzle" },
+  53: { emoji: "🌧️", name: "Moderate Drizzle" },
+  55: { emoji: "🌧️", name: "Dense Drizzle" },
+  61: { emoji: "🌧️", name: "Slight Rain" },
+  63: { emoji: "🌧️", name: "Moderate Rain" },
+  65: { emoji: "⛈️", name: "Heavy Rain" },
+  71: { emoji: "❄️", name: "Slight Snow" },
+  73: { emoji: "❄️", name: "Moderate Snow" },
+  75: { emoji: "❄️", name: "Heavy Snow" },
+  77: { emoji: "❄️", name: "Snow Grains" },
+  80: { emoji: "🌧️", name: "Slight Showers" },
+  81: { emoji: "🌧️", name: "Moderate Showers" },
+  82: { emoji: "⛈️", name: "Violent Showers" },
+  85: { emoji: "❄️", name: "Slight Snow Showers" },
+  86: { emoji: "❄️", name: "Heavy Snow Showers" },
+  95: { emoji: "⛈️", name: "Thunderstorm" },
+  96: { emoji: "⛈️", name: "Thunderstorm with Hail" },
+  99: { emoji: "⛈️", name: "Thunderstorm with Large Hail" },
+};
 
 // function to get gps coordinate via key word
 const searchLocation = async (location) => {
@@ -51,136 +76,121 @@ const searchWeather = async (latitude, longitude) => {
   );
 
   let data = await response.json();
-
-  console.log(data);
   return data?.error ? false : data;
 };
 
-// Weather Code Table
-const wmoCodeTable = {
-  0: { emoji: "☀️", name: "Clear" },
-  1: { emoji: "🌤️", name: "Mainly Clear" },
-  2: { emoji: "⛅", name: "Partly Cloudy" },
-  3: { emoji: "☁️", name: "Overcast" },
-  45: { emoji: "🌫️", name: "Foggy" },
-  48: { emoji: "🌫️", name: "Depositing Rime Fog" },
-  51: { emoji: "🌧️", name: "Light Drizzle" },
-  53: { emoji: "🌧️", name: "Moderate Drizzle" },
-  55: { emoji: "🌧️", name: "Dense Drizzle" },
-  61: { emoji: "🌧️", name: "Slight Rain" },
-  63: { emoji: "🌧️", name: "Moderate Rain" },
-  65: { emoji: "⛈️", name: "Heavy Rain" },
-  71: { emoji: "❄️", name: "Slight Snow" },
-  73: { emoji: "❄️", name: "Moderate Snow" },
-  75: { emoji: "❄️", name: "Heavy Snow" },
-  77: { emoji: "❄️", name: "Snow Grains" },
-  80: { emoji: "🌧️", name: "Slight Showers" },
-  81: { emoji: "🌧️", name: "Moderate Showers" },
-  82: { emoji: "⛈️", name: "Violent Showers" },
-  85: { emoji: "❄️", name: "Slight Snow Showers" },
-  86: { emoji: "❄️", name: "Heavy Snow Showers" },
-  95: { emoji: "⛈️", name: "Thunderstorm" },
-  96: { emoji: "⛈️", name: "Thunderstorm with Hail" },
-  99: { emoji: "⛈️", name: "Thunderstorm with Large Hail" },
+const weatherDataShaper = (data) => {
+  return data
+    ? {
+        current: {
+          weather: wmoCodeTable[data.current.weather_code],
+          temperature: `${data.current.temperature_2m} ${data.current_units.temperature_2m}`,
+
+          rain: `${data.current.rain} ${data.current_units.rain}`,
+          humidity: `${data.current.relative_humidity_2m} ${data.current_units.relative_humidity_2m}`,
+          wind: `${data.current.wind_speed_10m} ${data.current_units.wind_speed_10m}`,
+        },
+        daily_forecast: data.daily.time.map((t, idx) => {
+          return {
+            day_name: new Date(t).toLocaleDateString("en-US", {
+              weekday: "short",
+            }),
+            weather: wmoCodeTable[data.daily.weather_code[idx]],
+            min_temp: data.daily.temperature_2m_min[idx],
+            max_temp: data.daily.temperature_2m_max[idx],
+          };
+        }),
+      }
+    : {
+        current: {
+          weather: wmoCodeTable[0],
+          temperature: `- -`,
+
+          rain: `- -`,
+          humidity: `- -`,
+          wind: `- -`,
+        },
+        daily_forecast: [
+          {
+            day_name: " ",
+            weather: "-",
+            min_temp: "-",
+            max_temp: "-",
+          },
+        ],
+      };
 };
 
-// fetch daily forecast
-const fetchDailyForecast = async (search) => {
-  loaderElement.classList.remove("hidden");
-  // get location gps coordinates
-  let locationResult = await searchLocation(search);
+class WeatherApp {
+  searchElement;
+  searchBtnElement;
+  todayTempElement;
+  todayTempForecastElement;
+  todayTempIconElement;
+  todayRainElement;
+  todayHumidityElement;
+  todayWindElement;
+  foreCastElement;
+  loaderElement;
+  constructor(value) {
+    this.searchElement = elementSelector("search");
+    this.searchBtnElement = elementSelector("search-btn");
+    this.todayTempElement = elementSelector("today-temp");
+    this.todayTempForecastElement = elementSelector("today-temp-forecast");
+    this.todayTempIconElement = elementSelector("today-temp-icon");
+    this.todayRainElement = elementSelector("today-rain");
+    this.todayHumidityElement = elementSelector("today-humidity");
+    this.todayWindElement = elementSelector("today-wind");
+    this.foreCastElement = elementSelector("forecast");
+    this.loaderElement = elementSelector("loader");
 
-  // get coordinate weather data
-  let data = await searchWeather(
-    locationResult.latitude,
-    locationResult.longitude,
-  );
+    // initial search value
+    this.searchElement.value = value;
 
-  if (data) {
+    // Click event listner for search button
+    this.searchBtnElement.addEventListener("click", async () => {
+      this.fetchDailyForecast(this.searchElement.value);
+    });
+  }
+
+  renderDailyForecast(data) {
     // fill the current temperature
-    todayTempElement.innerText =
-      data.current.temperature_2m + " " + data.current_units.temperature_2m;
-    todayTempForecastElement.innerText =
-      wmoCodeTable[data.current.weather_code].name;
-    todayTempIconElement.innerText =
-      wmoCodeTable[data.current.weather_code].emoji;
-    todayRainElement.innerText =
-      data.current.rain + " " + data.current_units.rain;
-    todayHumidityElement.innerText =
-      data.current.relative_humidity_2m +
-      " " +
-      data.current_units.relative_humidity_2m;
-    todayWindElement.innerText =
-      data.current.wind_speed_10m + " " + data.current_units.wind_speed_10m;
+    this.todayTempElement.innerText = data.current.temperature;
+    this.todayTempForecastElement.innerText = data.current.weather.name;
+    this.todayTempIconElement.innerText = data.current.weather.emoji;
+    this.todayRainElement.innerText = data.current.rain;
+    this.todayHumidityElement.innerText = data.current.humidity;
+    this.todayWindElement.innerText = data.current.winds;
 
     // fill the daily forecast
     let foreCastRows = "";
 
-    for (let i = 0; i < data.daily.time.length; i++) {
-      const options = { weekday: "short" };
-      const dayName = new Date(data.daily.time[i]).toLocaleDateString(
-        "en-US",
-        options,
-      );
-
-      const weather = wmoCodeTable[data.daily.weather_code[i]];
-      //  {name, emoji}
-
-      const tempMin = data.daily.temperature_2m_min[i];
-      const tempMax = data.daily.temperature_2m_max[i];
-
-      foreCastRows += `<div
-                          class="forecast-row d-flex justify-content-between rounded-2 align-items-center px-4 fw-lighter">
-                          <div class="forecast-date">
-                              ${dayName}
-                          </div>
-                          <div class="forecast-details d-flex justify-content-start align-items-center">
-                              <span class="icon fs-1">${weather.emoji}</span>
-                              <span>${weather.name}</span>
-                          </div>
-  
-                          <div class="temp">
-                              <div>${tempMax}&deg;</div>
-                              <div>${tempMin}&deg;</div>
-                          </div>
-                      </div>
-  `;
+    for (let item of data.daily_forecast) {
+      foreCastRows += `<tr>
+                                <td class="align-middle">${item.day_name}</td>
+                                <td class="align-middle"><span> ${item.weather.emoji} </span> ${item.weather.name}</td>
+                                <td class="align-middle">${item.min_temp} &deg;</td>
+                                <td class="align-middle">${item.max_temp} &deg;</td>
+                            </tr>`;
     }
 
-    foreCastElement.innerHTML = foreCastRows;
-  } else {
-    // reset data
-    // fill the current temperature
-    todayTempElement.innerText = "-";
-    todayTempForecastElement.innerText = "-";
-    todayTempIconElement.innerText = "-";
-    todayRainElement.innerText = "-";
-    todayHumidityElement.innerText = "-";
-    todayWindElement.innerText = "-";
-    foreCastElement.innerHTML = ` <div
-                            class="forecast-row d-flex justify-content-between rounded-2 align-items-center px-4 fw-lighter">
-                            <div class="forecast-date">
-                                -
-                            </div>
-                            <div class="forecast-details d-flex justify-content-start align-items-center">
-                                <span class="icon fs-1">🌤️</span>
-                                <span>-</span>
-                            </div>
-
-                            <div class="temp">
-                                <div>-&deg;</div>
-                                <div>-&deg;</div>
-                            </div>
-                        </div>`;
+    this.foreCastElement.innerHTML = foreCastRows;
   }
 
-  loaderElement.classList.add("hidden");
-};
+  // Method to fetch daily forecast
+  async fetchDailyForecast(search) {
+    this.loaderElement.classList.remove("hidden");
+    // get location gps coordinates
+    let locationResult = await searchLocation(search);
 
-// Click event listner for search button
-searchBtnElement.addEventListener("click", async () => {
-  fetchDailyForecast(searchElement.value);
-});
+    // get coordinate weather data
+    let weatherData = weatherDataShaper(
+      await searchWeather(locationResult.latitude, locationResult.longitude),
+    );
+    this.renderDailyForecast(weatherData);
+    this.loaderElement.classList.add("hidden");
+  }
+}
 
-searchElement.value = "Sydney";
-fetchDailyForecast(searchElement.value);
+const w = new WeatherApp("Sydney");
+w.fetchDailyForecast(w.searchElement.value);
